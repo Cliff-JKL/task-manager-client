@@ -1,0 +1,27 @@
+{
+    // "parser": "@babel/eslint-parser",
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+        "react",
+        "@typescript-eslint"
+    ],
+    "extends": [
+        "airbnb",
+        "airbnb/hooks",
+        "airbnb-typescript"
+    ],
+    "settings": {
+        "react": {
+            "version": "detect"
+        }
+    },
+    "env": {
+        "browser": true
+    },
+    "rules": {
+        "react/jsx-indent": ["error", 2]
+    },
+    "parserOptions": {
+        "project": "./tsconfig.json"
+    }
+}
