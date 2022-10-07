@@ -1,33 +1,30 @@
-import React, { useEffect, useRef } from 'react';
-import Cookies from 'js-cookie';
-
-import { useTypedSelector } from '../hooks/useTypedSelector';
-import { useActions } from '../hooks/useActions';
+import React, { useEffect } from 'react';
+import { useTypedSelector } from '../hooks/typedSelector';
+import { useActions } from '../hooks/actions';
 import TaskList from '../components/TaskList';
+import CreateTaskForm from '../components/CreateTaskForm';
+import { useGetCreatedTasksQuery, useLazyGetCreatedTasksQuery } from '../store/api/user.api';
 
 const Tasks = () => {
-  const { tasks, error, loading } = useTypedSelector((state) => state.tasks);
-  const token = Cookies.get('Access_token');
-  const { fetchTasks } = useActions();
-  const firstRender = useRef(true);
+  const { tasks } = useTypedSelector((state) => state.task);
+  const { setTasks } = useActions();
+  const [getCreatedTasks, { isLoading: isTasksFetched, data: tasksData }] = useLazyGetCreatedTasksQuery();
 
   useEffect(() => {
-    console.log(`tasks loading: ${loading}`);
-    if (firstRender.current && token != undefined) {
-      fetchTasks(token);
-      console.log('first render...');
-      firstRender.current = false;
-    } else {
-      
+    if (tasksData) {
+      setTasks(tasksData);
     }
-  }, [token, fetchTasks, loading]);
+  }, [tasksData]);
+
+  useEffect(() => {
+    getCreatedTasks();
+  }, [tasks]);
 
   return (
     <>
-      {
-        !loading &&
-        <TaskList tasks={tasks} />
-      }
+      <p>{`${typeof tasks}`}</p>
+      <CreateTaskForm style={{ padding: '50px' }} />
+      { tasks !== undefined && <TaskList tasks={[...tasks].reverse()} />}
     </>
   );
 };

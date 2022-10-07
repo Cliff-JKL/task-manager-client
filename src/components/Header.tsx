@@ -1,57 +1,81 @@
-import React, { useEffect, useRef } from 'react';
-import { Container, Nav, Navbar, NavDropdown } from 'react-bootstrap';
-import { useHistory } from 'react-router-dom';
-import Cookies from 'js-cookie';
+import React, { useEffect, useRef, memo } from 'react';
+import {
+  Container, Nav, Navbar, NavDropdown,
+} from 'react-bootstrap';
+// import { useHistory } from 'react-router-dom';
+import {Link} from 'react-router-dom'
+import { useTypedSelector } from '../hooks/typedSelector';
+import { useActions } from '../hooks/actions';
+import { useLazyGetUserQuery } from '../store/api/user.api';
+import { useLogoutMutation, useRefreshMutation } from '../store/api/auth.api';
 
-import { useTypedSelector } from '../hooks/useTypedSelector';
-import { useActions } from '../hooks/useActions';
 
-const Header = () => {
-    // const { user } = useTypedSelector((state) => state.user);
-    const user = JSON.parse(localStorage.getItem('user'));
-    const firstRender = useRef(true);
+const Header = memo(() => {
+  const { user } = useTypedSelector((state) => state.user);
+  const { token } = useTypedSelector((state) => state.auth);
+  const [getUser, { isLoading: isUserFetched, data: userData, isError }] = useLazyGetUserQuery();
+  const { setUser, clearUser, clearAuth } = useActions();
+  const [logout] = useLogoutMutation();
 
-    const onLogout = () => {
-        localStorage.removeItem('user');
-        Cookies.remove('Access_token');
-    };
+  useEffect(() => {
+    if (token) {
+      getUser();
+    }
+  }, [token]);
 
-    return (
-        <>
-            <Navbar bg="light" expand="lg">
-                <Container>
-                    <Navbar.Brand href="/">Task Manager</Navbar.Brand>
-                    <Navbar.Toggle aria-controls="basic-navbar-nav" />
-                    <Navbar.Collapse id="basic-navbar-nav">
-                    <Nav className="me-auto">
-                        <Nav.Link href="/">Home</Nav.Link>
-                        <Nav.Link href="/tasks">Tasks</Nav.Link>
-                        <NavDropdown title="Info" id="basic-nav-dropdown">
-                        <NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>
-                        <NavDropdown.Item href="#action/3.2">Another action</NavDropdown.Item>
-                        <NavDropdown.Item href="#action/3.3">Something</NavDropdown.Item>
-                        <NavDropdown.Divider />
-                        <NavDropdown.Item href="#action/3.4">Separated link</NavDropdown.Item>
-                        </NavDropdown>
-                    </Nav>
-                    <Nav>
-                        {
-                            user?.username != null ?
-                            <>
-                                <Nav.Link href="/tasks">{user.username}</Nav.Link>
-                                <Nav.Link href="/login" onClick={() => onLogout()} >Logout</Nav.Link>
-                            </> :
-                            <>
-                                <Nav.Link href="/login">Login</Nav.Link>
-                                <Nav.Link href="/register">Register</Nav.Link>
-                            </>
+  useEffect(() => {
+    if (userData) {
+      setUser(userData);
+    }
+  }, [userData]);
+
+  const onLogout = () => {
+    localStorage.removeItem('user');
+    logout();
+    clearUser();
+    clearAuth();
+  };
+
+  return (
+    <>
+      <Navbar bg="light" expand="lg">
+        <Container>
+          <Link to="/tasks" className="navbar-brand">Task Manager</Link>
+          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+          <Navbar.Collapse id="basic-navbar-nav">
+            <Nav className="me-auto">
+              <Link to="/" className="nav-link">Home</Link>
+              <Link to="/tasks" className="nav-link">Tasks</Link>
+              <NavDropdown title="Info" id="basic-nav-dropdown">
+                <NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>
+                <NavDropdown.Item href="#action/3.2">Another action</NavDropdown.Item>
+                <NavDropdown.Item href="#action/3.3">Something</NavDropdown.Item>
+                <NavDropdown.Divider />
+                <NavDropdown.Item href="#action/3.4">Separated link</NavDropdown.Item>
+              </NavDropdown>
+            </Nav>
+            <Nav>
+              {
+                            user?.username !== undefined
+                              ? (
+                                <>
+                                  <Link to="/tasks" className="nav-link">{user.username}</Link>
+                                  <Link to="/login" onClick={() => onLogout()} className="nav-link">Logout</Link>
+                                </>
+                              )
+                              : (
+                                <>
+                                  <Link to="/login" className="nav-link">Login</Link>
+                                  <Link to="/register" className="nav-link">Register</Link>
+                                </>
+                              )
                         }
-                    </Nav>
-                    </Navbar.Collapse>
-                </Container>
-                </Navbar>
-        </>
-    )
-};
+            </Nav>
+          </Navbar.Collapse>
+        </Container>
+      </Navbar>
+    </>
+  );
+});
 
 export default Header;
