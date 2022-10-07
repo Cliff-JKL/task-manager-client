@@ -1,10 +1,10 @@
 const path = require('path');
 const HtmlPlugin = require('html-webpack-plugin');
 const MiniCssPlugin = require('mini-css-extract-plugin');
-// const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const ReactRefreshPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 // console.log(process);
-const PROD_MODE = process.env.WEBPACK_DEV_SERVER === 'true' ? false : true ;
 
+const PROD_MODE = process.env.WEBPACK_DEV_SERVER === 'true' ? true : false ;
 module.exports = (env, argv) => ({
     entry: './src/index.tsx',
     output: {
@@ -14,12 +14,10 @@ module.exports = (env, argv) => ({
     },
     devtool: PROD_MODE ? 'hidden-source-map' : 'source-map',
     resolve: {
-        alias: {
-            'react-dom': '@hot-loader/react-dom',
-        },
         extensions: ['.js', '.jsx', '.ts', '.tsx']
     },
     plugins: [
+        !PROD_MODE && new ReactRefreshPlugin(),
         new MiniCssPlugin(),
         new HtmlPlugin({
             template: './src/index.html',
@@ -30,7 +28,12 @@ module.exports = (env, argv) => ({
         rules: [
             {
                 test: /\.(js|ts)x?/i,
-                use: 'babel-loader',
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        cacheDirectory: true,
+                    },
+                },
                 exclude: /node_modules/
             },
             {
@@ -57,7 +60,7 @@ module.exports = (env, argv) => ({
                             modules: {
                                 localIdentName :
                                     PROD_MODE ?
-                                    // '[path][name]__[local]' :
+                                    // '[path][text]__[local]' :
                                     '[hash:base64]' :
                                     '[local]'
                             }
@@ -71,8 +74,9 @@ module.exports = (env, argv) => ({
     },
     devServer: {
         port: 9000,
-        contentBase: path.join(__dirname, 'dist'),
+        static: {
+          directory: path.join(__dirname, 'dist'),
+        },
         historyApiFallback: { index: '/' },
-        hot: true,
     }
 });

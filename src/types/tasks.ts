@@ -1,7 +1,31 @@
 export interface Task {
   id: number;
-  name: string;
+  text: string;
   isFinished: boolean;
+}
+
+interface ICreator {
+  uid: string;
+  email: string;
+  username: string;
+}
+
+export interface ITask {
+  isFinished: boolean;
+  text: string;
+  creator: ICreator;
+}
+
+export interface ICreatedTask {
+  id: number;
+  creatorUid: string;
+  text: string;
+  isFinished: boolean;
+}
+
+export interface IUpdateTask {
+  id: number;
+  task: UpdateTaskDto;
 }
 
 export interface TasksState {
@@ -10,27 +34,18 @@ export interface TasksState {
   error: null | string;
 }
 
-export enum TasksActionTypes {
-  FETCH_TASKS = 'FETCH_TASKS',
-  FETCH_TASKS_SUCCESS = 'FETCH_TASKS_SUCCESS',
-  FETCH_TASKS_ERROR = 'FETCH_TASKS_ERROR',
+export interface GetTaskDto extends Task {}
+
+export interface GetCreatedTasksDto {
+  tasks: GetTaskDto[];
 }
 
-interface FetchTasksAction {
-  type: TasksActionTypes.FETCH_TASKS;
+export interface CreateTaskDto {
+  text: string;
+  isFinished?: boolean;
 }
 
-interface FetchTasksSuccessAction {
-  type: TasksActionTypes.FETCH_TASKS_SUCCESS;
-  payload: Array<Task>;
+export interface UpdateTaskDto {
+  text?: string;
+  isFinished?: boolean;
 }
-
-interface FetchTasksErrorAction {
-  type: TasksActionTypes.FETCH_TASKS_ERROR;
-  payload: string;
-}
-
-export type TasksAction =
-  | FetchTasksAction
-  | FetchTasksSuccessAction
-  | FetchTasksErrorAction;
